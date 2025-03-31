@@ -1,116 +1,60 @@
-# Media transition in TD
+# Easy Particules dans TouchDesigner
 
-![Gif example](./images/gifEffect.gif)
+Basé sur ce tutoriel d'Anya Maryina: [.PNG into particles | Reorder TOP explained | TouchDesigner Tutorial
+](https://www.youtube.com/watch?v=CcvhTgD7IOI&ab_channel=anyamaryina)
 
-## Import a media folder
+## Créer le setup
 
-To import all the medias, we will create a Replicator network. To understand or go further with Replicator networks, see [my tutorial](https://github.com/LucieMrc/TD_Replicator_EN).
+Importer une image sur fond transparent (ou dont on enlevera le fond) avec un `Movie File In` TOP. Enlever le fond si besoin avec un `Chroma Key` TOP et croper si besoin avec un `Crop`.
 
-![Screenshot de l'interface de TD](./images/screen1.png)
+!['interface de TD'](./images/screen1.png)
 
-Create a `Folder` DAT and in the "Root Folder" parameter, open the folder your media are in.
+Créer également 2 `Ramp` TOP, un horizontal et un vertical.
 
-![Screenshot de l'interface de TD](./images/screen2.png)
+!['interface de TD'](./images/screen2.png)
 
-Create a `Null` DAT after the `Folder`, and create a `Replicator` COMP. We will use the replicator to create as many COMP as there is medias in the folder. Here, I have 4 images.
+Créer un `Reorder` TOP et mettre les 2 `Ramp` dans les 2 premières entrées.
 
-![Screenshot de l'interface de TD](./images/screen3.png)
+Dans les paramètres du `Reorder, sélectionner "Input 2" pour l'Output Green, et "Zero" pour l'Output Blue.
 
-Drag and drop the `Null` DAT in the "Template DAT Table" parameter of the `Replicator`.
+!['interface de TD'](./images/screen3.png)
 
-![Screenshot de l'interface de TD](./images/screen4.png)
+Ajouter l'image qu'on a importé dans la quatrième entrée du `Reorder` TOP et choisir "Input 4" pour l'Output Alpha. On doit alors voir apparaître la forme de notre image sur le `Reorder`.
 
-To create the Master operator, we create a 'Base' COMP that we drag and drop in the "Master Operator" parameter of the `Replicator`.
+!['interface de TD'](./images/screen4.png)
 
-![Screenshot de l'interface de TD](./images/screen5.png)
+## ParticlesGPU
 
-We go into the `Base` COMP and create a `Movie File In` TOP. We want to import the media of the row which number is the number of the COMP. So the "File" parameter of the `Movie File In` parameter would be "parent(2).op("null1")[me.parent().digits,'path']"
+Ouvrir la palette, et depuis le dossier "Tools" récuperer le node "ParticlesGpu".
 
-parent(2).op("null1") is the `Null1` DAT outside of the `Base` COMP
-[me.parent().digits,'path'] is the row and the column in the DAT : 
-- me.parent().digits is the number of the COMP which contains the `Movie File In`
-- 'path' is the "path" column in the DAT.
+Relier la sortie du `Reorder` à la première entrée du  "ParticlesGpu" et l'image importée à la seconde entrée.
 
-Create and link a `Out` TOP, and exit the COMP.
+!['interface de TD'](./images/screen5.png)
 
-![Screenshot de l'interface de TD](./images/screen6.png)
+Dans les paramètres de "ParticlesGpu", dans l'onglet "ParticlesGPU", mettre 1000 dans "Birth" (on pourra modifier ce nombre plus tard), 2 et 1 dans "Life Min" et "Lifevariance" et décocher "Display Bounds".
 
-If you click on the button "Recreate All Operators" in the `Replicator` parameters, you should see as many `Base` COMP as you have medias in your folder appearing with the image in it, named "item".
+!['interface de TD'](./images/screen6.png)
 
-## Create the counter
+Dans l'onglet "Forces", mettre tous les paramètres qui finissent par " Magnitude" à 0.
 
-To make the medias appears one by one, we need to have a counter.
+!['interface de TD'](./images/screen7.png)
 
-![Screenshot de l'interface de TD](./images/screen7.png)
+Dans l'onglet "Material", choisir "Line" dans la liste Material.
 
-We create a `Beat` CHOP, and connect it to a `Logic` CHOP. In the "Output" tab of the `Beat` parameters, turn off "Ramp" and turn on "Beat".
+## Adapter la taille
 
-![Screenshot de l'interface de TD](./images/screen8.png)
+Pour l'instant on ne voit vaguement qu'une petite version de notre image au milieu du node "ParticlesGpu".
 
-In the `Logic`, select "On when value changed" in the "Convert Input" parameter.
+Pour pouvoir modifier la taille et la position dans le rendu, commencer par aller dans les paramètres des `Ramp` TOP, dans l'onglet "Common", et dans "Pixel Format" choisir "32-bit float RGBA".
 
-![Screenshot de l'interface de TD](./images/screen9.png)
+!['interface de TD'](./images/screen8.png)
 
-Connect it to a `Count` CHOP and your count should increase on each beat of the timeline.
+Créer un `Point Transform` TOP entre le `Reorder` et le "particlesGpu" et modifier le paramètre "Uniform Scale" pour voir grandir les particules.
 
-![Screenshot de l'interface de TD](./images/screen10.png)
+On peux aussi replacer le rendu au centre du node avec les paramètres "Translate".
 
-We will need to reset the count at some point as it will continue to increase and we have a finite number of medias. We can either choose to reset it via a keyboard event, or to have the count loop between 0 and our number of medias, which is what I did.
-
-## Medias appearing
-
-To create the animation, let's go back into the master operator of the replicator, `Base1`.
-
-![Screenshot de l'interface de TD](./images/screen11.png)
-
-We import the count into Base by creating a `Select` CHOP and writing "../count1" to select the `Count` CHOP outside of the Base.
-
-![Screenshot de l'interface de TD](./images/screen12.png)
-
-We want the media appear when just before its number in the count, so we create a `Logic` CHOP and select "Off when outside bounds" in the "Convert Input" parameter.
-
-In "Bounds", we write "me.parent().digits-1" in the minimum to have the number preceding the media's, and in the maximum we write the maximum of our medias (5 for me).
-
-![Screenshot de l'interface de TD](./images/screen13.png)
-
-Then, we create a `Level` TOP between the `Movie File In` and the `Out`. In the "Post" tab of the parameters, we put the channel from the `Logic` CHOP as the "Opacity" parameter.
-
-If you exit the Base, and you click on the button "Recreate All Operators" in the `Replicator` parameters, you should see each media appearing with the count.
-
-## Create the transition
-
-Back in the master operator `Base` COMP, we will now create the fade/keying animation.
-
-![Screenshot de l'interface de TD](./images/screen14.png)
-
-After the `Select` CHOP, create a `Filter` CHOP. The "Width" parameter will be the speed of the animation, I chose 0.4s.
-
-![Screenshot de l'interface de TD](./images/screen15.png)
-
-After the `Filter`, create a `Limit` CHOP. We want to clamp at the number of the base - 1 for the minimum and the number of the base for the maximum.
-
-![Screenshot de l'interface de TD](./images/screen16.png)
-
-Then we create a `Math` CHOP. In the "Range" tab, we change the "From Range" to the same mininum and maximum as the `Limit` CHOP, "me.parent().digits-1" and "me.parent().digits".
-
-In the "To Range", we change to 1 and 0.
-
-![Screenshot de l'interface de TD](./images/screen17.png)
-
-Then we create a `Chroma Key` TOP between the `Level` and `Out` TOP. In the "Value" range of the parameters, we put the channel from the `Math` as the "Val Min".
-
-If you exit the Base, and you click on the button "Recreate All Operators" in the `Replicator` parameters, you should see each media appearing with the transition effect.
-
-## Compose all the medias
-
-![Screenshot de l'interface de TD](./images/screen18.png)
-
-Create a `Composite` TOP, and in the "TOPs" parameter write "item*/out1" to select all the `Out` TOPs of the "item" COMPs.
-
-As the Operation Mode, we choose "Over" and turn on "Swap Operation Order" so the medias appears on top of each other.
-
-If you want to export the composition, you should turn off "realtime" in Touchdesigner parameters as the process can lag and you don't want dropped frames.
+!['interface de TD'](./images/screen10.png)
 
 # To go further
 
-- nothing yet# Easy_Particules_TD_FR
+- nothing yet
