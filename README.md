@@ -1,5 +1,9 @@
 # Easy Particules dans TouchDesigner FR
 
+Scroll down for english version.
+
+*Ou comment créer un nuage de particules à partir d'une image.*
+
 Basé sur ce tutoriel d'Anya Maryina: [.PNG into particles | Reorder TOP explained | TouchDesigner Tutorial
 ](https://www.youtube.com/watch?v=CcvhTgD7IOI&ab_channel=anyamaryina)
 
@@ -61,6 +65,8 @@ On peux aussi replacer le rendu au centre du node avec les paramètres "Translat
 
 
 # Easy Particules in TouchDesigner EN
+
+*On how to create an image driven particules cloud.*
 
 Based on this tutorial from Anya Maryina: [.PNG into particles | Reorder TOP explained | TouchDesigner Tutorial
 ](https://www.youtube.com/watch?v=CcvhTgD7IOI&ab_channel=anyamaryina)
